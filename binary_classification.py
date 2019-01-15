@@ -27,7 +27,7 @@ else:
 # our photos are in the size of (80,80,3)
 IMG_SIZE = 256
 
-epochs = 3
+epochs = 10
 step_size = 8
 IMG_SIZE_ALEXNET = 227
 validating_size = 40
