@@ -33,7 +33,7 @@ IMG_SIZE_ALEXNET = 227
 validating_size = 40
 nodes_fc1 = 4096
 nodes_fc2 = 4096
-output_classes = 1 ##ORIGINALLY 2! might have to change data to be a binary rep of the classification - i.e [0,1] or [1,0] or something 
+output_classes = 2 ##ORIGINALLY 2! might have to change data to be a binary rep of the classification - i.e [0,1] or [1,0] or something 
 
 TRAIN_DIR = os.getcwd()
 
@@ -57,7 +57,7 @@ with open("measles.txt",'r') as uht:
 
 
 
-filenames =  ([["unhealthy/"+d.strip(),1] for d in diseased_filenames] + [["healthy/"+d.strip(),0] for d in healthy_filenames])
+filenames =  ([["unhealthy/"+d.strip(),[0,1]] for d in diseased_filenames] + [["healthy/"+d.strip(),[1,0]] for d in healthy_filenames])
 shuffle(filenames)
 all_data = [np.array([np.array(Image.open(d[0])),d[1]]) for d in filenames]
 
@@ -78,13 +78,13 @@ train = train_data[:train_end_index]
 cv = train_data[train_end_index:]
 
 X = np.array([i[0] for i in train]).reshape(-1,IMG_SIZE_ALEXNET,IMG_SIZE_ALEXNET,3)
-Y = np.array([np.array([i[1]]) for i in train])
+Y = np.array([np.array(i[1]) for i in train])
 
 
 cv_x = np.array([i[0] for i in cv]).reshape(-1,IMG_SIZE_ALEXNET,IMG_SIZE_ALEXNET,3)
-cv_y = np.array([np.array([i[1]]) for i in cv])
+cv_y = np.array([np.array(i[1]) for i in cv])
 test_x = np.array([i[0] for i in test_data]).reshape(-1,IMG_SIZE_ALEXNET,IMG_SIZE_ALEXNET,3)
-test_y = np.array([np.array([i[1]]) for i in test_data])
+test_y = np.array([np.array(i[1]) for i in test_data])
 
 print(X.shape)
 
@@ -139,7 +139,7 @@ tf.reset_default_graph()
 
 #Defining Placeholders
 x = tf.placeholder(tf.float32,shape=[None,IMG_SIZE_ALEXNET,IMG_SIZE_ALEXNET,3])
-y_true = tf.placeholder(tf.float32,shape=[None,1]) ##changed to 1 
+y_true = tf.placeholder(tf.float32,shape=[None,output_classes])  
 
 ##CONVOLUTION LAYER 1
 #Weights for layer 1
