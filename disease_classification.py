@@ -33,7 +33,7 @@ IMG_SIZE_ALEXNET = 227
 validating_size = 40
 nodes_fc1 = 4096
 nodes_fc2 = 4096
-output_classes = 2 ##ORIGINALLY 2! might have to change data to be a binary rep of the classification - i.e [0,1] or [1,0] or something 
+output_classes = 4 ##ORIGINALLY 2! might have to change data to be a binary rep of the classification - i.e [0,1] or [1,0] or something 
 
 TRAIN_DIR = os.getcwd()
 
@@ -44,21 +44,29 @@ print(TRAIN_DIR) # current working directory
 
 
 
-diseased_filenames = []
+rot_filenames = []
+measles_filenames = []
+blight_filenames = []
 healthy_filenames = []
 with open("healthy.txt",'r') as ht:
     healthy_filenames = ht.readlines()
 with open("black_rot.txt",'r') as uht:
-    diseased_filenames = diseased_filenames + uht.readlines()
+    rot_filenames = uht.readlines()
 with open("leaf_blight.txt",'r') as uht:
-    diseased_filenames = diseased_filenames + uht.readlines()
+    blight_filenames = uht.readlines()
 with open("measles.txt",'r') as uht:
-    diseased_filenames = diseased_filenames + uht.readlines()
+    measles_filenames = uht.readlines()
 
 
+rot_filenames = [["unhealthy/"+r.strip(),[0,1,0,0]] for r in rot_filenames]
+measles_filenames = [["unhealthy/"+m.strip(),[0,0,1,0]] for m in measles_filenames]
+blight_filenames = [["unhealthy/"+b.strip(),[0,0,0,1]] for b in blight_filenames]
+healthy_filenames =   [["healthy/"+d.strip(),[1,0,0,0]] for d in healthy_filenames]
 
-filenames =  ([["unhealthy/"+d.strip(),[0,1]] for d in diseased_filenames] + [["healthy/"+d.strip(),[1,0]] for d in healthy_filenames])
+filenames = rot_filenames + measles_filenames + blight_filenames + healthy_filenames
 shuffle(filenames)
+
+
 all_data = [np.array([np.array(Image.open(d[0])),d[1]]) for d in filenames]
 
 end_index = (len(all_data) // 6 ) * 5
@@ -330,7 +338,7 @@ with tf.Session(config=config) as sess:
         test_acc_list.append(acc_on_test)
         test_auc_list.append(auc_on_test)
         test_loss_list.append(loss_on_test)
-    saver.save(sess, os.path.join(os.getcwd(),"CNN_BI.ckpt"))
+    saver.save(sess, os.path.join(os.getcwd(),"CNN_MULTI.ckpt"))
     test_acc_ = round(np.mean(test_acc_list),5)
     test_auc_ = round(np.mean(test_auc_list),5)
     test_loss_ = round(np.mean(test_loss_list),5)
@@ -350,7 +358,7 @@ plt.show()
 
 #Restoring a pretrained
 with tf.Session() as session:
-    saver.restore(session, "CNN_BI.ckpt")
+    saver.restore(session, "CNN_MULTI.ckpt")
     print("Model restored.") 
     print('Initialized')
     k = session.run([tf.nn.softmax(y_pred)], feed_dict={x:test_x[0:64] , hold_prob1:1,hold_prob2:1})
@@ -365,9 +373,11 @@ print(k[0])
 pred_labels = []
 
 for i in range(64):
-    r = np.round(k[i],3).argmax()
+    r = np.round(k[i],3).argmax() #r is the index 
     if r ==0 : pred_labels.append("healthy")
-    elif r ==1: pred_labels.append("unhealthy")
+    elif r ==1: pred_labels.append("rot")
+	elif r ==2: pred_labels.append("measles")
+	elif r ==3: pred_labels.append("blight")
 
 #Multiple images parameters
 w=256
