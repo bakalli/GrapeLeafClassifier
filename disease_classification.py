@@ -17,17 +17,17 @@ from PIL import Image
 
 #Switching to CPU
 if tf.test.gpu_device_name():
-    print("GPU isn't gonna be used even if you have")
-    os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
+	print("GPU isn't gonna be used even if you have")
+	os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
 else:
-    print("No GPU Found")
-    print("CPU is gonna be used")
+	print("No GPU Found")
+	print("CPU is gonna be used")
 
 #HYPERPARAMETERS
 # our photos are in the size of (80,80,3)
 IMG_SIZE = 256
 
-epochs = 10
+epochs = 3
 step_size = 8
 IMG_SIZE_ALEXNET = 227
 validating_size = 40
@@ -49,13 +49,13 @@ measles_filenames = []
 blight_filenames = []
 healthy_filenames = []
 with open("healthy.txt",'r') as ht:
-    healthy_filenames = ht.readlines()
+	healthy_filenames = ht.readlines()
 with open("black_rot.txt",'r') as uht:
-    rot_filenames = uht.readlines()
+	rot_filenames = uht.readlines()
 with open("leaf_blight.txt",'r') as uht:
-    blight_filenames = uht.readlines()
+	blight_filenames = uht.readlines()
 with open("measles.txt",'r') as uht:
-    measles_filenames = uht.readlines()
+	measles_filenames = uht.readlines()
 
 
 rot_filenames = [["unhealthy/"+r.strip(),[0,1,0,0]] for r in rot_filenames]
@@ -75,10 +75,10 @@ train_data = all_data[:end_index]
 test_data = all_data[end_index+1:]
 
 for i in range(len(train_data)):
-    train_data[i][0] = cv2.resize(train_data[i][0],(IMG_SIZE_ALEXNET,IMG_SIZE_ALEXNET))
+	train_data[i][0] = cv2.resize(train_data[i][0],(IMG_SIZE_ALEXNET,IMG_SIZE_ALEXNET))
 
 for i in range(len(test_data)):
-    test_data[i][0] = cv2.resize(test_data[i][0],(IMG_SIZE_ALEXNET,IMG_SIZE_ALEXNET))
+	test_data[i][0] = cv2.resize(test_data[i][0],(IMG_SIZE_ALEXNET,IMG_SIZE_ALEXNET))
 
 train_end_index = (len(train_data) // 5)*4
 
@@ -299,69 +299,69 @@ saver = tf.train.Saver()
 
 config = tf.ConfigProto(device_count = {'GPU': 0})
 with tf.Session(config=config) as sess:
-    sess.run(init)
-    for i in range(epochs):
-        for j in range(0,steps-remaining,step_size):
-            #Feeding step_size-amount data with 0.5 keeping probabilities on DROPOUT LAYERS
-            _,c = sess.run([train,cross_entropy],
-                        feed_dict={x:X[j:j+step_size] , y_true:Y[j:j+step_size],hold_prob1:0.5,hold_prob2:0.5})
-        
-        
+	sess.run(init)
+	for i in range(epochs):
+		for j in range(0,steps-remaining,step_size):
+			#Feeding step_size-amount data with 0.5 keeping probabilities on DROPOUT LAYERS
+			_,c = sess.run([train,cross_entropy],
+						feed_dict={x:X[j:j+step_size] , y_true:Y[j:j+step_size],hold_prob1:0.5,hold_prob2:0.5})
+		
+		
 		#Writing for loop to calculate test statistics. GTX 1050 isn't able to calculate all test data.
-        cv_auc_list = []
-        cv_acc_list = []
-        cv_loss_list = []
-        for v in range(0,len(cv_x)-int(len(cv_x) % validating_size),validating_size):
-            acc_on_cv,loss_on_cv,preds = sess.run([acc,cross_entropy,tf.nn.softmax(y_pred)],
+		cv_auc_list = []
+		cv_acc_list = []
+		cv_loss_list = []
+		for v in range(0,len(cv_x)-int(len(cv_x) % validating_size),validating_size):
+			acc_on_cv,loss_on_cv,preds = sess.run([acc,cross_entropy,tf.nn.softmax(y_pred)],
 			feed_dict={x:cv_x[v:v+validating_size] ,y_true:cv_y[v:v+validating_size] ,hold_prob1:1.0,hold_prob2:1.0})
 			
-            auc_on_cv = roc_auc_score(cv_y[v:v+validating_size],preds)
-            cv_acc_list.append(acc_on_cv)
-            cv_auc_list.append(auc_on_cv)
-            cv_loss_list.append(loss_on_cv)
-        acc_cv_ = round(np.mean(cv_acc_list),5)
-        auc_cv_ = round(np.mean(cv_auc_list),5)
-        loss_cv_ = round(np.mean(cv_loss_list),5)
-        acc_list.append(acc_cv_)
-        auc_list.append(auc_cv_)
-        loss_list.append(loss_cv_)
-        print("Epoch:",i,"Accuracy:",acc_cv_,"Loss:",loss_cv_ ,"AUC:",auc_cv_)
-    
-    test_auc_list = []
-    test_acc_list = []
-    test_loss_list = []
-    for v in range(0,len(test_x)-int(len(test_x) % validating_size),validating_size):
-        acc_on_test,loss_on_test,preds = sess.run([acc,cross_entropy,tf.nn.softmax(y_pred)],
+			#auc_on_cv = roc_auc_score(cv_y[v:v+validating_size],preds)
+			cv_acc_list.append(acc_on_cv)
+			#cv_auc_list.append(auc_on_cv)
+			cv_loss_list.append(loss_on_cv)
+		acc_cv_ = round(np.mean(cv_acc_list),5)
+		#auc_cv_ = round(np.mean(cv_auc_list),5)
+		loss_cv_ = round(np.mean(cv_loss_list),5)
+		acc_list.append(acc_cv_)
+		#auc_list.append(auc_cv_)
+		loss_list.append(loss_cv_)
+		print("Epoch:",i,"Accuracy:",acc_cv_,"Loss:",loss_cv_)# ,"AUC:",auc_cv_)
+	
+	#test_auc_list = []
+	test_acc_list = []
+	test_loss_list = []
+	for v in range(0,len(test_x)-int(len(test_x) % validating_size),validating_size):
+		acc_on_test,loss_on_test,preds = sess.run([acc,cross_entropy,tf.nn.softmax(y_pred)],
 		feed_dict={x:test_x[v:v+validating_size] ,y_true:test_y[v:v+validating_size] ,hold_prob1:1.0,hold_prob2:1.0})
-        
-        auc_on_test = roc_auc_score(test_y[v:v+validating_size],preds)
-        test_acc_list.append(acc_on_test)
-        test_auc_list.append(auc_on_test)
-        test_loss_list.append(loss_on_test)
-    saver.save(sess, os.path.join(os.getcwd(),"CNN_MULTI.ckpt"))
-    test_acc_ = round(np.mean(test_acc_list),5)
-    test_auc_ = round(np.mean(test_auc_list),5)
-    test_loss_ = round(np.mean(test_loss_list),5)
-    print("Test Results are below:")
-    print("Accuracy:",test_acc_,"Loss:",test_loss_,"AUC:",test_auc_)
+		
+		#auc_on_test = roc_auc_score(test_y[v:v+validating_size],preds)
+		test_acc_list.append(acc_on_test)
+		#test_auc_list.append(auc_on_test)
+		test_loss_list.append(loss_on_test)
+	saver.save(sess, os.path.join(os.getcwd(),"CNN_MULTI.ckpt"))
+	test_acc_ = round(np.mean(test_acc_list),5)
+	#test_auc_ = round(np.mean(test_auc_list),5)
+	test_loss_ = round(np.mean(test_loss_list),5)
+	print("Test Results are below:")
+	print("Accuracy:",test_acc_,"Loss:",test_loss_)#"AUC:",test_auc_)
 
 
-f,ax=plt.subplots(1,3,figsize=(12,3))
+f,ax=plt.subplots(1,2,figsize=(12,2))
 pd.Series(acc_list).plot(kind='line',title='Accuracy on CV data',ax=ax[0])
 pd.Series(loss_list).plot(kind='line',figsize=(12,7),title='Loss on CV data',ax=ax[1])
-pd.Series(auc_list).plot(kind='line',figsize=(12,7),title='AUC on CV data',ax=ax[2])
+#pd.Series(auc_list).plot(kind='line',figsize=(12,7),title='AUC on CV data',ax=ax[2])
 plt.subplots_adjust(wspace=0.8)
 ax[0].set_title('Accuracy on CV data')
 ax[1].set_title('Loss on CV data')
-ax[2].set_title('Loss on CV data')
+#ax[2].set_title('Loss on CV data')
 plt.show()
 
 #Restoring a pretrained
 with tf.Session() as session:
-    saver.restore(session, "CNN_MULTI.ckpt")
-    print("Model restored.") 
-    print('Initialized')
-    k = session.run([tf.nn.softmax(y_pred)], feed_dict={x:test_x[0:64] , hold_prob1:1,hold_prob2:1})
+	saver.restore(session, "CNN_MULTI.ckpt")
+	print("Model restored.") 
+	print('Initialized')
+	k = session.run([tf.nn.softmax(y_pred)], feed_dict={x:test_x[0:64] , hold_prob1:1,hold_prob2:1})
 
 print(np.array(k).shape)
 
@@ -373,9 +373,9 @@ print(k[0])
 pred_labels = []
 
 for i in range(64):
-    r = np.round(k[i],3).argmax() #r is the index 
-    if r ==0 : pred_labels.append("healthy")
-    elif r ==1: pred_labels.append("rot")
+	r = np.round(k[i],3).argmax() #r is the index 
+	if r ==0 : pred_labels.append("healthy")
+	elif r ==1: pred_labels.append("rot")
 	elif r ==2: pred_labels.append("measles")
 	elif r ==3: pred_labels.append("blight")
 
@@ -392,11 +392,11 @@ print(images.shape)
 
 fig = plt.figure(figsize=(20, 20))
 for m in range(1, columns*rows +1):
-    img = images[m-1].reshape([IMG_SIZE_ALEXNET, IMG_SIZE_ALEXNET, 3])
-    fig.add_subplot(rows, columns, m)
-    plt.imshow(img)
-    plt.title("Pred: " + pred_labels[m-1])
-    plt.axis('off')
+	img = images[m-1].reshape([IMG_SIZE_ALEXNET, IMG_SIZE_ALEXNET, 3])
+	fig.add_subplot(rows, columns, m)
+	plt.imshow(img)
+	plt.title("Pred: " + pred_labels[m-1])
+	plt.axis('off')
 plt.show()
 
 
